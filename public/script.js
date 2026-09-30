@@ -22,8 +22,16 @@ const formTitle =
 const message =
     document.getElementById("message");
 
+const searchInput =
+    document.getElementById("searchInput");
 
-// LOAD STUDENTS
+const searchButton =
+    document.getElementById("searchButton");
+
+const showAllButton =
+    document.getElementById("showAllButton");
+
+
 async function loadStudents() {
 
     try {
@@ -32,39 +40,7 @@ async function loadStudents() {
 
         const students = await response.json();
 
-        studentTableBody.innerHTML = "";
-
-        students.forEach(student => {
-
-            const row = document.createElement("tr");
-
-            row.innerHTML = `
-                <td>${student.studentId}</td>
-                <td>${student.name}</td>
-                <td>${student.program}</td>
-
-                <td>
-
-                    <button
-                        class="edit-button"
-                        onclick="editStudent('${student._id}')"
-                    >
-                        Edit
-                    </button>
-
-                    <button
-                        class="delete-button"
-                        onclick="deleteStudent('${student._id}')"
-                    >
-                        Delete
-                    </button>
-
-                </td>
-            `;
-
-            studentTableBody.appendChild(row);
-
-        });
+        displayStudents(students);
 
     } catch (error) {
 
@@ -78,7 +54,57 @@ async function loadStudents() {
 }
 
 
-// ADD / UPDATE STUDENT
+function displayStudents(students) {
+
+    studentTableBody.innerHTML = "";
+
+    if (students.length === 0) {
+
+        studentTableBody.innerHTML = `
+            <tr>
+                <td colspan="4">
+                    No student records found.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    students.forEach(student => {
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${student.studentId}</td>
+            <td>${student.name}</td>
+            <td>${student.program}</td>
+
+            <td>
+
+                <button
+                    class="edit-button"
+                    onclick="editStudent('${student._id}')"
+                >
+                    Edit
+                </button>
+
+                <button
+                    class="delete-button"
+                    onclick="deleteStudent('${student._id}')"
+                >
+                    Delete
+                </button>
+
+            </td>
+        `;
+
+        studentTableBody.appendChild(row);
+
+    });
+}
+
+
 studentForm.addEventListener(
     "submit",
     async function (event) {
@@ -95,7 +121,6 @@ studentForm.addEventListener(
 
             let response;
 
-            // UPDATE
             if (studentMongoId.value) {
 
                 response = await fetch(
@@ -111,10 +136,7 @@ studentForm.addEventListener(
                     }
                 );
 
-            }
-
-            // CREATE
-            else {
+            } else {
 
                 response = await fetch(
                     API_URL,
@@ -174,7 +196,6 @@ studentForm.addEventListener(
 );
 
 
-// EDIT STUDENT
 async function editStudent(id) {
 
     try {
@@ -225,7 +246,6 @@ async function editStudent(id) {
 }
 
 
-// DELETE STUDENT
 async function deleteStudent(id) {
 
     const confirmed = confirm(
@@ -274,7 +294,6 @@ async function deleteStudent(id) {
 }
 
 
-// CANCEL EDIT
 cancelButton.addEventListener(
     "click",
     function () {
@@ -285,7 +304,6 @@ cancelButton.addEventListener(
 );
 
 
-// RESET FORM
 function resetForm() {
 
     studentForm.reset();
@@ -303,7 +321,6 @@ function resetForm() {
 }
 
 
-// DISPLAY MESSAGE
 function showMessage(
     text,
     isError = false
@@ -329,5 +346,95 @@ function showMessage(
 }
 
 
-// LOAD DATA WHEN PAGE OPENS
+searchButton.addEventListener(
+    "click",
+    async function () {
+
+        const searchText =
+            searchInput.value
+                .trim()
+                .toLowerCase();
+
+        if (searchText === "") {
+
+            loadStudents();
+
+            return;
+        }
+
+        try {
+
+            const response =
+                await fetch(API_URL);
+
+            const students =
+                await response.json();
+
+            const filteredStudents =
+                students.filter(student => {
+
+                    const studentId =
+                        String(student.studentId)
+                            .toLowerCase();
+
+                    const name =
+                        String(student.name)
+                            .toLowerCase();
+
+                    const program =
+                        String(student.program)
+                            .toLowerCase();
+
+                    return (
+                        studentId.includes(searchText) ||
+                        name.includes(searchText) ||
+                        program.includes(searchText)
+                    );
+
+                });
+
+            displayStudents(filteredStudents);
+
+        } catch (error) {
+
+            showMessage(
+                "Unable to search student records.",
+                true
+            );
+
+            console.error(error);
+        }
+
+    }
+);
+
+
+showAllButton.addEventListener(
+    "click",
+    function () {
+
+        searchInput.value = "";
+
+        loadStudents();
+
+    }
+);
+
+
+searchInput.addEventListener(
+    "keypress",
+    function (event) {
+
+        if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            searchButton.click();
+
+        }
+
+    }
+);
+
+
 loadStudents();

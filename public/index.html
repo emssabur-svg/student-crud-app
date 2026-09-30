@@ -80,6 +80,22 @@
 
         <h2>Student Records</h2>
 
+        <div class="search-container">
+
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search by Student ID, Name, or Program">
+            <button type="button" id="searchButton">
+                Search
+            </button>
+
+            <button type="button" id="showAllButton">
+                Show All
+            </button>
+
+        </div>
+
         <table>
 
             <thead>
@@ -90,7 +106,7 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-
+            
             <tbody id="studentTableBody">
             </tbody>
 
